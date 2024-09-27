@@ -7,19 +7,18 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Data
-@Table(name = "payments")
 @AllArgsConstructor
 @NoArgsConstructor
-public class Payment {
+@Table(name = "address")
+public class Address {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long payment_id;
+    private Long address_id;
 
-    @Column(name="user_email")
-    private String userEmail;
-
-    @Column(name = "amount")
-    private double amount;
+    private String street;
+    private String city;
+    private String postalCode;
+    private String country;
 
 }

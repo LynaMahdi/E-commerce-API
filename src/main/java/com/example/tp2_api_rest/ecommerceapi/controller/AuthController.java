@@ -5,7 +5,7 @@ import com.example.tp2_api_rest.ecommerceapi.responses.AuthResponse;
 import com.example.tp2_api_rest.ecommerceapi.responses.LoginRequest;
 import com.example.tp2_api_rest.ecommerceapi.responses.RegisterRequest;
 import com.example.tp2_api_rest.ecommerceapi.jwt.TokenRefreshRequest;
-import com.example.tp2_api_rest.ecommerceapi.repository.UserRespository;
+import com.example.tp2_api_rest.ecommerceapi.repository.UserRepository;
 import com.example.tp2_api_rest.ecommerceapi.service.AuthService;
 import com.example.tp2_api_rest.ecommerceapi.entity.User;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,7 @@ import java.util.List;
 public class AuthController {
 
     private final AuthService authService;
-    private final UserRespository userRespository;
+    private final UserRepository userRespository;
 
     @PostMapping(value = "register")
     public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {

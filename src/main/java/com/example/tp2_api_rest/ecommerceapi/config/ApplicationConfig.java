@@ -1,6 +1,6 @@
 package com.example.tp2_api_rest.ecommerceapi.config;
 
-import com.example.tp2_api_rest.ecommerceapi.repository.UserRespository;
+import com.example.tp2_api_rest.ecommerceapi.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,7 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @RequiredArgsConstructor
 public class ApplicationConfig {
 
-    private final UserRespository userRespository;
+    private final UserRepository userRespository;
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {

@@ -1,6 +1,7 @@
 package com.example.tp2_api_rest.ecommerceapi.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,16 +21,17 @@ public class Category {
 
     @Id
     @GeneratedValue
-    private Integer id;
+    private Integer category_id;
 
-    private String name;
+    private String categoryName;
 
 
-    @ManyToOne
-    @JoinColumn(name = "category_id")
-    private Category category;
 
-    @OneToMany(mappedBy = "product", cascade = { CascadeType.PERSIST, CascadeType.MERGE }, fetch = FetchType.EAGER)
-    private List<CartProduct> products = new ArrayList<>();
+    @OneToMany(mappedBy = "category", cascade =  CascadeType.ALL )
+    @JsonManagedReference // Gérer la sérialisation de la liste des produits
+    private List<Product> products;
 
+    public void setCategory_id(Integer category_id) {
+        this.category_id = category_id;
+    }
 }

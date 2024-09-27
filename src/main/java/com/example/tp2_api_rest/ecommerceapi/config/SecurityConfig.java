@@ -30,7 +30,7 @@ public class SecurityConfig {
                     // Autoriser l'accès non authentifié pour login et register
                     .requestMatchers("/auth/login", "/auth/register","/auth/refresh-token").permitAll()
                     // Protéger les endpoints nécessitant une authentification
-                    .requestMatchers("/auth/profile","/users/me", "/api/bmi/**").authenticated()
+                    .requestMatchers("/auth/profile","/users/me", "/api/bmi/**", "/api/product","/api/product/**","/api/orders","/api/orders/**","/api/categories/","/api/categories/**","/api/**","/api/admin/categories/").authenticated()
             )
             .sessionManagement(sessionManager ->
                sessionManager

@@ -1,6 +1,7 @@
 package com.example.tp2_api_rest.ecommerceapi.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,7 +21,7 @@ public class Cart {
 
     @Id
     @GeneratedValue
-    Integer id;
+    Integer card_id;
 
 
     @OneToOne
@@ -28,6 +29,7 @@ public class Cart {
     private User user;
 
     @OneToMany(mappedBy = "cart", cascade = { CascadeType.PERSIST, CascadeType.MERGE }, orphanRemoval = true)
+    @JsonManagedReference
     private List<CartProduct> cartItems = new ArrayList<>();
 
     private Double totalPrice;
