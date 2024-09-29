@@ -1,6 +1,7 @@
 package com.example.tp2_api_rest.ecommerceapi.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -21,11 +22,13 @@ public class Cart {
 
     @Id
     @GeneratedValue
-    Integer card_id;
+    private Integer cartId;
 
 
     @OneToOne
     @JoinColumn(name="user_id")
+    @JsonBackReference // Prevent circular reference
+
     private User user;
 
     @OneToMany(mappedBy = "cart", cascade = { CascadeType.PERSIST, CascadeType.MERGE }, orphanRemoval = true)

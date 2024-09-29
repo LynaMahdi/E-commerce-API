@@ -24,9 +24,6 @@ public class Order {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-  //  @Email
-    @Column(nullable = false)
-    private String email;
 
     @OneToMany(mappedBy = "order", cascade = { CascadeType.PERSIST, CascadeType.MERGE })
     private List<OrderProduct> orderItems = new ArrayList<>();

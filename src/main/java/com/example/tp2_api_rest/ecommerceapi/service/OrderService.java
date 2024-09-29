@@ -2,13 +2,14 @@ package com.example.tp2_api_rest.ecommerceapi.service;
 
 import com.example.tp2_api_rest.ecommerceapi.entity.*;
 import com.example.tp2_api_rest.ecommerceapi.exceptions.NotFoundException;
-import com.example.tp2_api_rest.ecommerceapi.repository.OrderRepository;
-import com.example.tp2_api_rest.ecommerceapi.repository.ProductRepository;
-import com.example.tp2_api_rest.ecommerceapi.repository.UserRepository;
+import com.example.tp2_api_rest.ecommerceapi.repository.*;
+import com.stripe.exception.StripeException;
+import com.stripe.model.PaymentIntent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -18,58 +19,77 @@ public class OrderService {
     private OrderRepository orderRepository;
 
     @Autowired
-    private ProductRepository productRepository;
+    private OrderProductRepository orderProductRepository;
 
     @Autowired
-    private UserRepository userRepository;
+    private CartRepository cartRepository;
 
-    public Order createOrder(User user, List<OrderProduct> orderItems, String email) throws NotFoundException {
+    @Autowired
+    private PaymentRepository paymentRepository;
+
+    @Autowired
+    private CartService cartService;
+
+    @Autowired
+    private PaymentService paymentService;
+
+    public Order createOrderAfterPaymentConfirmation(Integer userId, Integer cartId, Long paymentId, String paymentIntentId) throws NotFoundException, StripeException, Exception {
+        Cart cart = cartRepository.findCartByUserAndCartId(userId, cartId);
+        if (cart == null) {
+            throw new NotFoundException("Cart not found");
+        }
+
+        PaymentIntent paymentIntent = PaymentIntent.retrieve(paymentIntentId);
+        if (!"succeeded".equals(paymentIntent.getStatus())) {
+            throw new Exception("Payment not confirmed. Order cannot be created.");
+        }
+
+        // Step 3: Retrieve the existing payment record from the database using both paymentId and paymentIntentId
+        Payment payment = paymentRepository.findByPaymentId(paymentId); // This should match your method
+        System.out.println("Payment Intent ID: " + paymentIntentId);
+
+        if (payment == null) {
+            throw new NotFoundException("Payment record not found");
+        }
+
         Order order = new Order();
-        order.setUser(user);
-        order.setEmail(email);
+        order.setUser(cart.getUser());
         order.setOrderDate(LocalDate.now());
-        order.setOrderStatus("En traitement");
+        order.setTotalAmount(cart.getTotalPrice());
+        order.setOrderStatus("Order Accepted!");
+        order.setPayment(payment);
 
-        double totalAmount = 0;
+        // Save the order in the repository
+        Order savedOrder = orderRepository.save(order);
 
-        for (OrderProduct item : orderItems) {
-            Product product = productRepository.findById(item.getProduct().getProduct_id())
-                    .orElseThrow(() -> new NotFoundException("Produit non trouvé avec l'ID : " + item.getProduct().getProduct_id()));
-
-            item.setOrder(order);
-            item.setOrderedProductPrice(product.getPrice());
-            totalAmount += item.getOrderedProductPrice() * item.getQuantity();
+        List<CartProduct> cartItems = cart.getCartItems();
+        if (cartItems.isEmpty()) {
+            throw new NotFoundException("Cart is empty");
         }
 
-        order.setOrderItems(orderItems);
-        order.setTotalAmount(totalAmount);
-
-        return orderRepository.save(order);
-    }
-
-
-    public List<Order> getOrdersForUser(User user) {
-        return orderRepository.findByUser(user);
-    }
-
-    public Order getOrderById(Integer orderId) throws NotFoundException {
-        return orderRepository.findById(orderId)
-                .orElseThrow(() -> new NotFoundException("Commande non trouvée avec l'ID : " + orderId));
-    }
-
-    public Order updateOrderStatus(Integer orderId, String status) throws NotFoundException {
-        Order order = getOrderById(orderId);
-        order.setOrderStatus(status);
-        return orderRepository.save(order);
-    }
-
-    public void cancelOrder(Integer orderId) throws NotFoundException {
-        Order order = getOrderById(orderId);
-        if (!order.getOrderStatus().equals("Livrée")) {
-            order.setOrderStatus("Annulée");
-            orderRepository.save(order);
-        } else {
-            throw new IllegalStateException("Impossible d'annuler une commande déjà livrée");
+        List<OrderProduct> orderItems = new ArrayList<>();
+        for (CartProduct cartItem : cartItems) {
+            OrderProduct orderProduct = new OrderProduct();
+            orderProduct.setProduct(cartItem.getProduct());
+            orderProduct.setQuantity(cartItem.getQuantity());
+            orderProduct.setOrderedProductPrice(cartItem.getProductPrice());
+            orderProduct.setOrder(savedOrder);
+            orderItems.add(orderProduct);
         }
+
+        orderProductRepository.saveAll(orderItems);
+
+        for (CartProduct cartItem : cartItems) {
+            Product product = cartItem.getProduct();
+            int quantity = cartItem.getQuantity();
+
+            // Remove product from cart and update stock
+            cartService.deleteProductFromCart(cartId, product.getProduct_id());
+            product.setStock(product.getStock() - quantity);
+        }
+
+        return order;
     }
+
+
 }

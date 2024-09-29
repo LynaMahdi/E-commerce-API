@@ -23,64 +23,24 @@ public class OrderController {
     @Autowired
     private OrderService orderService;
 
-  //  @Autowired
- //   private UserService userService;  // Hypothèse que tu as un UserService pour récupérer l'utilisateur authentifié
 
-    // Récupérer les commandes de l'utilisateur connecté
-  /*  @GetMapping
-    public ResponseEntity<List<Order>> getUserOrders(Authentication authentication) {
-        User user = (User) authentication.getPrincipal();  // Utilisateur authentifié
-        List<Order> orders = orderService.getOrdersForUser(user);
-        return new ResponseEntity<>(orders, HttpStatus.OK);
-    }*/
 
-    // Récupérer une commande spécifique
-    @GetMapping("/{orderId}")
-    public ResponseEntity<Order> getOrderById(@PathVariable Integer orderId) {
+    @PostMapping("/create-order")
+    public ResponseEntity<?> createOrder(@RequestParam Integer cartId,@RequestParam Long paymentId, @RequestParam String paymentIntentId) {
         try {
-            Order order = orderService.getOrderById(orderId);
-            return new ResponseEntity<>(order, HttpStatus.OK);
-        } catch (NotFoundException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            Integer userId = ((User) authentication.getPrincipal()).getUser_id();
+
+            Order createdOrder = orderService.createOrderAfterPaymentConfirmation(userId, cartId, paymentId,paymentIntentId);
+
+            return new ResponseEntity<>(createdOrder, HttpStatus.CREATED);
+
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 
-    // Créer une nouvelle commande
-    @PostMapping
-    public ResponseEntity<Order> createOrder(@RequestBody OrderRequest orderRequest) throws NotFoundException {
-        // Get the currently authenticated user
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User currentUser = (User) authentication.getPrincipal();
-
-        // Create the order using the service
-        Order order = orderService.createOrder(currentUser, orderRequest.getOrderItems(), orderRequest.getEmail());
-
-        // Return the created order with a 201 Created status
-        return new ResponseEntity<>(order, HttpStatus.CREATED);
-    }
 
 
-    // Mettre à jour le statut d'une commande
-    @PutMapping("/{orderId}/status")
-    public ResponseEntity<Order> updateOrderStatus(@PathVariable Integer orderId, @RequestParam String status) {
-        try {
-            Order updatedOrder = orderService.updateOrderStatus(orderId, status);
-            return new ResponseEntity<>(updatedOrder, HttpStatus.OK);
-        } catch (NotFoundException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-    }
 
-    // Annuler une commande en cours
-    @DeleteMapping("/{orderId}")
-    public ResponseEntity<Void> cancelOrder(@PathVariable Integer orderId) {
-        try {
-            orderService.cancelOrder(orderId);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (NotFoundException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } catch (IllegalStateException e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-    }
 }

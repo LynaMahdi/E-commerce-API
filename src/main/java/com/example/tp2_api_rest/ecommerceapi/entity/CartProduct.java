@@ -18,13 +18,15 @@ public class CartProduct {
     private int cardProductId;
 
     @ManyToOne
-    @JoinColumn(name="cart_id")
+    @JoinColumn(name = "cart_id")
     @JsonBackReference
     private Cart cart;
 
+
     @ManyToOne
-    @JoinTable(name="product_id")
+    @JoinColumn(name="product_id") // Spécifie le nom de la colonne dans la table cart_product
     private Product product;
+
 
     private Integer quantity;
 

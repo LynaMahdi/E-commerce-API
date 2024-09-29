@@ -1,5 +1,6 @@
 package com.example.tp2_api_rest.ecommerceapi.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -36,14 +37,17 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     Role role;
 
-    @ManyToMany
+    //eager a chaque fois que je charge un utilisateur les adresses aussis seront chargées
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_address",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "address_id"))
     List<Address> addresses;
 
+
     @OneToOne(mappedBy = "user", cascade = { CascadeType.PERSIST, CascadeType.MERGE }, orphanRemoval = true)
+    @JsonBackReference // Prevent circular reference
     private Cart cart;
 
     @Override

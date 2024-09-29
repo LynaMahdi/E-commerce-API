@@ -1,6 +1,7 @@
 package com.example.tp2_api_rest.ecommerceapi.controller;
 
 
+import com.example.tp2_api_rest.ecommerceapi.exceptions.NotFoundException;
 import com.example.tp2_api_rest.ecommerceapi.responses.AuthResponse;
 import com.example.tp2_api_rest.ecommerceapi.responses.LoginRequest;
 import com.example.tp2_api_rest.ecommerceapi.responses.RegisterRequest;
@@ -9,6 +10,7 @@ import com.example.tp2_api_rest.ecommerceapi.repository.UserRepository;
 import com.example.tp2_api_rest.ecommerceapi.service.AuthService;
 import com.example.tp2_api_rest.ecommerceapi.entity.User;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -34,24 +36,35 @@ public class AuthController {
         return ResponseEntity.ok(authService.login(request));
     }
 
-    @GetMapping(value = "profile")
+    @GetMapping("/profile")
     public ResponseEntity<User> getProfile() {
-
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        User currentUser = (User) authentication.getPrincipal();
+        if (authentication != null && authentication.isAuthenticated() && authentication.getPrincipal() instanceof User) {
+            User currentUser = (User) authentication.getPrincipal();
 
-        return ResponseEntity.ok(currentUser);
+            // Initialize addresses
+            currentUser.getAddresses().size(); // This initializes the collection
 
+            return ResponseEntity.ok(currentUser);
+        }
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
-    @GetMapping("/")
+
+
+    @GetMapping("/all")
     public ResponseEntity<List<User>> allUsers() {
         List<User> users = authService.allUsers();
 
         return ResponseEntity.ok(users);
     }
 
-
+    @PutMapping("/update/{userId}")
+    public ResponseEntity<User> updateUser(@PathVariable Integer userId, @RequestBody RegisterRequest request) throws NotFoundException {
+        User updatedUser = authService.updateUser(userId, request);
+        return ResponseEntity.ok(updatedUser); // Return the updated user
+    }
 
     @PostMapping("/refresh-token")
     public ResponseEntity<AuthResponse> refreshToken(@RequestBody TokenRefreshRequest request) {

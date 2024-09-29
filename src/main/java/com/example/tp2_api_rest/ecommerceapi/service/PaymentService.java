@@ -13,7 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +20,6 @@ import java.util.Map;
 @Service
 @Transactional
 public class PaymentService {
-
 
     private final PaymentRepository paymentRepository;
 
@@ -32,46 +30,64 @@ public class PaymentService {
     }
 
     public PaymentIntent createPaymentIntent(PaymentInfoRequest paymentInfoRequest) throws StripeException {
-        List<String> paymentMethodTypes = new ArrayList<>();
-        paymentMethodTypes.add("card");
-
         Map<String, Object> params = new HashMap<>();
         params.put("amount", paymentInfoRequest.getAmount());
         params.put("currency", paymentInfoRequest.getCurrency());
-        params.put("payment_method_types", paymentMethodTypes);
+        params.put("payment_method_types", List.of("card")); // Type de méthode de paiement
 
-        return PaymentIntent.create(params);
+        PaymentIntent paymentIntent = PaymentIntent.create(params);
+
+        Payment payment = new Payment();
+        payment.setPaymentIntentId(paymentIntent.getId());
+        payment.setUserEmail(paymentInfoRequest.getReceiptEmail());
+        payment.setAmount(paymentInfoRequest.getAmount() / 100.0); // Convert from cents to dollars
+        payment.setStatus("Waiting"); // Initial status
+
+        paymentRepository.save(payment);
+
+        return paymentIntent;
     }
 
-    public ResponseEntity<String> stripePayment(String userEmail, String paymentIntentId) throws Exception {
+    public ResponseEntity<String> stripePayment(String userEmail, String paymentIntentId, String paymentMethodId) throws Exception {
         // Log the email and payment intent ID being processed
         System.out.println("Processing payment for email: " + userEmail + " with PaymentIntent ID: " + paymentIntentId);
 
         // Find the payment record for the user
         Payment payment = paymentRepository.findByUserEmail(userEmail);
-
         if (payment == null) {
             throw new Exception("Payment information is missing");
         }
 
         try {
-            // Confirm the payment intent with Stripe
+            // Confirm the payment intent with Stripe, using the payment method
             PaymentIntent paymentIntent = PaymentIntent.retrieve(paymentIntentId);
-            paymentIntent.confirm(); // Confirm the payment
+            Map<String, Object> confirmParams = new HashMap<>();
+            confirmParams.put("payment_method", paymentMethodId); // Use the payment method ID
 
-            // Optionally, update the payment record with the payment status
+            paymentIntent = paymentIntent.confirm(confirmParams); // Confirm the payment with the method
+            System.out.println("Payment Intent Status: " + paymentIntent.getStatus());
+
+            // Update the payment record with the payment status
             payment.setAmount(paymentIntent.getAmount() / 100.0); // Convert amount to correct value (in dollars)
+            payment.setStatus(paymentIntent.getStatus()); // Update status based on the payment intent
+            payment.setPaymentMethod(paymentMethodId); // Set the payment method ID
+
             paymentRepository.save(payment); // Save updated payment info
 
-            return new ResponseEntity<>("Payment completed successfully.", HttpStatus.OK);
+            // Handle different payment statuses
+            if ("succeeded".equals(paymentIntent.getStatus())) {
+                return new ResponseEntity<>("Payment completed successfully.", HttpStatus.OK);
+            } else if ("requires_action".equals(paymentIntent.getStatus())) {
+                // If the payment requires additional actions (like 3D Secure), handle accordingly
+                return new ResponseEntity<>("Payment requires additional authentication.", HttpStatus.PRECONDITION_REQUIRED);
+            } else {
+                return new ResponseEntity<>("Payment could not be completed: " + paymentIntent.getStatus(), HttpStatus.BAD_REQUEST);
+            }
         } catch (StripeException e) {
             // Handle Stripe exceptions
             System.out.println("Stripe exception occurred: " + e.getMessage());
             throw new Exception("Payment could not be completed: " + e.getMessage());
         }
     }
-
-
-
 
 }

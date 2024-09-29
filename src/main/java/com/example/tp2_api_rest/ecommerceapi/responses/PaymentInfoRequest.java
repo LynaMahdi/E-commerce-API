@@ -8,4 +8,5 @@ public class PaymentInfoRequest {
     private int amount;
     private String currency;
     private String receiptEmail;
+    private String paymentMethod;
 }

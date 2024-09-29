@@ -23,14 +23,14 @@ public class ProductController {
     private ProductService productService;
 
     // Récupérer la liste des produits
-    @GetMapping("/products")
+    @GetMapping("/product/all")
     public ResponseEntity<List<Product>> getAllProducts() {
         List<Product> products = productService.getAllProducts();
         return new ResponseEntity<>(products, HttpStatus.OK);
     }
 
     // Récupérer les détails d'un produit spécifique
-    @GetMapping("product/{id}")
+    @GetMapping("/product/{id}")
     public ResponseEntity<Product> getProductById(@PathVariable Integer id) {
         try{
             Product product = productService.getProductById(id);
@@ -56,7 +56,7 @@ public class ProductController {
 
 
     // Mettre à jour un produit
-    @PutMapping("/{id}")
+    @PutMapping("/product/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Product> updateProduct(@PathVariable Integer id, @RequestBody Product updatedProduct) {
         try {
@@ -70,11 +70,11 @@ public class ProductController {
     }
 
     // Supprimer un produit
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/product/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteProduct(@PathVariable Integer id) {
         try{
-            productService.deleteProduct(id);
+            productService.deleteProductById(id);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }catch (NotFoundException e){
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);

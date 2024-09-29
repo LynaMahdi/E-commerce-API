@@ -14,12 +14,23 @@ public class Payment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long payment_id;
+    private Long paymentId;
+
+    @Column(unique = true)
+    private String paymentIntentId;
 
     @Column(name="user_email")
     private String userEmail;
 
+    @OneToOne(mappedBy = "payment", cascade = { CascadeType.PERSIST, CascadeType.MERGE })
+    private Order order;
+
+
     @Column(name = "amount")
     private double amount;
+
+    private String status;
+
+    private String paymentMethod;
 
 }

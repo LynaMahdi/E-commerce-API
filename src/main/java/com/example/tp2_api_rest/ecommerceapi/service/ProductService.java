@@ -1,9 +1,11 @@
 package com.example.tp2_api_rest.ecommerceapi.service;
 
+import com.example.tp2_api_rest.ecommerceapi.entity.Cart;
 import com.example.tp2_api_rest.ecommerceapi.entity.Category;
 import com.example.tp2_api_rest.ecommerceapi.entity.Product;
 import com.example.tp2_api_rest.ecommerceapi.exceptions.NotFoundException;
 import com.example.tp2_api_rest.ecommerceapi.exceptions.RessourceExists;
+import com.example.tp2_api_rest.ecommerceapi.repository.CartRepository;
 import com.example.tp2_api_rest.ecommerceapi.repository.CategoryRepository;
 import com.example.tp2_api_rest.ecommerceapi.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +20,9 @@ public class ProductService {
 
     @Autowired
     private CategoryRepository categoryRepository;
+
+    @Autowired
+    private CartRepository cartRepository;
 
     public List<Product> getAllProducts() {
         return productRepository.findAll();
@@ -88,8 +93,23 @@ public class ProductService {
         return productRepository.save(existingProduct);
     }
 
-    public void deleteProduct(Integer id) throws NotFoundException {
-        Product existingProduct = getProductById(id);
-        productRepository.delete(existingProduct);
+
+
+    //a checker
+
+    public void deleteProductById(Integer productId) throws NotFoundException {
+        // Récupérer le produit à supprimer
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new NotFoundException("Product not found with id: " + productId));
+
+        // Supprimer le produit de tous les paniers
+        List<Cart> carts = cartRepository.findAll();
+        for (Cart cart : carts) {
+            cart.getCartItems().removeIf(cartItem -> cartItem.getProduct().getProduct_id().equals(productId));
+            cartRepository.save(cart); // Sauvegarder le panier mis à jour
+        }
+
+        // Supprimer le produit du repository
+        productRepository.delete(product);
     }
 }

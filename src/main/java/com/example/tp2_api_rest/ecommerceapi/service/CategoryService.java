@@ -33,10 +33,12 @@ public class CategoryService {
     public boolean categoryExistsByName(String categoryName) {
         return categoryRepository.findAll().stream()
                 .anyMatch(category -> category.getCategoryName().equalsIgnoreCase(categoryName));
+
     }
     public Category addCategory(Category category) {
         return categoryRepository.save(category);
     }
+
 
     public Category updateCategory(Integer id, Category categoryDetails) throws NotFoundException {
         Category existingCategory = getCategoryById(id);
@@ -53,7 +55,7 @@ public class CategoryService {
         products.forEach(product ->
         {
             try {
-                productService.deleteProduct(product.getProduct_id());
+                productService.deleteProductById(product.getProduct_id());
             } catch (NotFoundException e) {
                 throw new RuntimeException(e);
             }

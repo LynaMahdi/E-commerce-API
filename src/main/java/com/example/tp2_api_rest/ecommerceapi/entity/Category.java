@@ -31,7 +31,4 @@ public class Category {
     @JsonManagedReference // Gérer la sérialisation de la liste des produits
     private List<Product> products;
 
-    public void setCategory_id(Integer category_id) {
-        this.category_id = category_id;
-    }
 }

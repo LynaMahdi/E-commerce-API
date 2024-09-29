@@ -33,19 +33,22 @@ public class PaymentController {
         return new ResponseEntity<>(paymentStr, HttpStatus.OK);
     }
 
-    @PutMapping("/payment-complete")
-    public ResponseEntity<String> stripePaymentComplete(@RequestParam String paymentIntentId)
+    @PostMapping("/payment-complete")
+    public ResponseEntity<String> stripePaymentComplete(@RequestParam String paymentIntentId,
+                                                        @RequestParam String paymentMethodId)
             throws Exception {
+        // Retrieve the currently authenticated user
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User currentUser = (User) authentication.getPrincipal();
 
+        // Get the email of the current user
         String userEmail = currentUser.getEmail();
-        if (userEmail == null) {
-            throw new Exception("User email is missing");
+        if (userEmail == null || userEmail.isEmpty()) { // Check for null or empty
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User email is missing");
         }
 
-        // Use the paymentIntentId to confirm the payment
-        return paymentService.stripePayment(userEmail, paymentIntentId);
+        // Confirm the payment using the paymentIntentId and paymentMethodId
+        return paymentService.stripePayment(userEmail, paymentIntentId, paymentMethodId);
     }
 
 }
