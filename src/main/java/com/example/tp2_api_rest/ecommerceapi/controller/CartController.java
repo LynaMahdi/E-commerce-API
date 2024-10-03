@@ -67,12 +67,16 @@ public class CartController {
             @PathVariable Integer cartId,
             @PathVariable Integer productId) {
         try {
-            String responseMessage = cartService.deleteProductFromCart(cartId, productId);
-            return new ResponseEntity<>(responseMessage, HttpStatus.OK); // 200 OK
+            // Appeler la méthode de service qui retourne un ResponseEntity
+            return cartService.deleteProductFromCart(cartId, productId); // Renvoie directement le ResponseEntity du service
         } catch (NotFoundException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND); // 404 Not Found
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage()); // 404 Not Found
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred."); // 500 Internal Server Error
         }
     }
+
+
 
 
 }

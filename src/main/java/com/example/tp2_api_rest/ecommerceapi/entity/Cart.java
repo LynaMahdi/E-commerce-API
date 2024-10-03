@@ -28,10 +28,9 @@ public class Cart {
     @OneToOne
     @JoinColumn(name="user_id")
     @JsonBackReference // Prevent circular reference
-
     private User user;
 
-    @OneToMany(mappedBy = "cart", cascade = { CascadeType.PERSIST, CascadeType.MERGE }, orphanRemoval = true)
+    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<CartProduct> cartItems = new ArrayList<>();
 

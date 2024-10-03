@@ -10,7 +10,9 @@ import com.example.tp2_api_rest.ecommerceapi.exceptions.RessourceExists;
 import com.example.tp2_api_rest.ecommerceapi.repository.CartProductRepository;
 import com.example.tp2_api_rest.ecommerceapi.repository.CartRepository;
 import com.example.tp2_api_rest.ecommerceapi.repository.ProductRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -147,7 +149,9 @@ public class CartService {
 
 
     //delete a product from cart
-    public String deleteProductFromCart(Integer cartId, Integer productId) throws NotFoundException {
+
+    @Transactional
+    public ResponseEntity<String> deleteProductFromCart(Integer cartId, Integer productId) throws NotFoundException {
         // Vérifie si le panier existe
         Cart cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new NotFoundException("Cart not found with ID: " + cartId));
@@ -167,9 +171,11 @@ public class CartService {
         product.setStock(product.getStock() + cartProduct.getQuantity());
 
         // Supprime le produit du panier
+        cart.getCartItems().remove(cartProduct);
+        cartRepository.save(cart);
         cartProductRepository.delete(cartProduct);
 
-        return "Product " + cartProduct.getProduct().getName() + " removed from the cart !!!";
+        return ResponseEntity.ok("Product " + cartProduct.getProduct().getName() + " removed from the cart!");
     }
 
 }

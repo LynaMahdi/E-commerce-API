@@ -17,14 +17,15 @@ public class CartProduct {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int cardProductId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cart_id")
     @JsonBackReference
     private Cart cart;
 
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="product_id") // Spécifie le nom de la colonne dans la table cart_product
+    @JsonIgnore
     private Product product;
 
 

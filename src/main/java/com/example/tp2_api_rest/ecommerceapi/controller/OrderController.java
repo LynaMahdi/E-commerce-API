@@ -1,9 +1,6 @@
 package com.example.tp2_api_rest.ecommerceapi.controller;
 
-import com.example.tp2_api_rest.ecommerceapi.entity.Address;
-import com.example.tp2_api_rest.ecommerceapi.entity.Order;
-import com.example.tp2_api_rest.ecommerceapi.entity.OrderProduct;
-import com.example.tp2_api_rest.ecommerceapi.entity.User;
+import com.example.tp2_api_rest.ecommerceapi.entity.*;
 import com.example.tp2_api_rest.ecommerceapi.exceptions.NotFoundException;
 import com.example.tp2_api_rest.ecommerceapi.responses.OrderRequest;
 import com.example.tp2_api_rest.ecommerceapi.service.OrderService;
@@ -26,12 +23,13 @@ public class OrderController {
 
 
     @PostMapping("/create-order")
-    public ResponseEntity<?> createOrder(@RequestParam Integer cartId,@RequestParam Long paymentId, @RequestParam String paymentIntentId) {
+    public ResponseEntity<?> createOrder(@RequestParam Integer cartId,@RequestParam Long paymentId, @RequestParam String paymentIntentId, @RequestBody Address address) {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             Integer userId = ((User) authentication.getPrincipal()).getUser_id();
 
-            Order createdOrder = orderService.createOrderAfterPaymentConfirmation(userId, cartId, paymentId,paymentIntentId);
+
+            Order createdOrder = orderService.createOrderAfterPaymentConfirmation(userId, cartId, paymentId,paymentIntentId,address);
 
             return new ResponseEntity<>(createdOrder, HttpStatus.CREATED);
 
@@ -40,6 +38,17 @@ public class OrderController {
         }
     }
 
+    @PutMapping("/{orderId}/status")
+    public ResponseEntity<Order> updateOrderStatus(@PathVariable Integer orderId, @RequestParam OrderStatus status) throws NotFoundException {
+        Order updatedOrder = orderService.updateOrderStatus(orderId, status);
+        return ResponseEntity.ok(updatedOrder);
+    }
+
+    @PutMapping("/{orderId}/cancel")
+    public ResponseEntity<Order> cancelOrder(@PathVariable Integer orderId) throws NotFoundException {
+        Order cancelledOrder = orderService.cancelOrder(orderId);
+        return ResponseEntity.ok(cancelledOrder);
+    }
 
 
 

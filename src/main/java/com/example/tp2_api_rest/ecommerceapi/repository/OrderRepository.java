@@ -18,4 +18,7 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
 
     @Override
     Optional<Order> findById(Integer integer);
+
+    @Query("SELECT o FROM Order o WHERE o.order_id = ?1")
+    Order findByOrderId(Integer orderId);
 }

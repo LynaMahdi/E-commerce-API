@@ -1,5 +1,6 @@
 package com.example.tp2_api_rest.ecommerceapi.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -23,6 +24,7 @@ public class Payment {
     private String userEmail;
 
     @OneToOne(mappedBy = "payment", cascade = { CascadeType.PERSIST, CascadeType.MERGE })
+    @JsonBackReference
     private Order order;
 
 

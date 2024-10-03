@@ -5,6 +5,7 @@ import com.example.tp2_api_rest.ecommerceapi.exceptions.NotFoundException;
 import com.example.tp2_api_rest.ecommerceapi.repository.*;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
+import org.antlr.v4.runtime.misc.LogManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -33,7 +34,15 @@ public class OrderService {
     @Autowired
     private PaymentService paymentService;
 
-    public Order createOrderAfterPaymentConfirmation(Integer userId, Integer cartId, Long paymentId, String paymentIntentId) throws NotFoundException, StripeException, Exception {
+    @Autowired
+    private DeliveryRepository deliveryRepository;
+
+    @Autowired
+    private AddressRepository addressRepository;
+
+
+    //create order
+    public Order createOrderAfterPaymentConfirmation(Integer userId, Integer cartId, Long paymentId, String paymentIntentId, Address selectedAddress) throws NotFoundException, StripeException, Exception {
         Cart cart = cartRepository.findCartByUserAndCartId(userId, cartId);
         if (cart == null) {
             throw new NotFoundException("Cart not found");
@@ -44,25 +53,56 @@ public class OrderService {
             throw new Exception("Payment not confirmed. Order cannot be created.");
         }
 
-        // Step 3: Retrieve the existing payment record from the database using both paymentId and paymentIntentId
-        Payment payment = paymentRepository.findByPaymentId(paymentId); // This should match your method
-        System.out.println("Payment Intent ID: " + paymentIntentId);
-
+        Payment payment = paymentRepository.findByPaymentId(paymentId);
         if (payment == null) {
             throw new NotFoundException("Payment record not found");
         }
 
+
+        // Vérifiez si l'adresse existe déjà dans la base de données
+        Address existingAddress = addressRepository.findByStreetAndCityAndPostalCodeAndCountry(
+                selectedAddress.getStreet(),
+                selectedAddress.getCity(),
+                selectedAddress.getPostalCode(),
+                selectedAddress.getCountry()
+        );
+
+        // Si l'adresse existe, utilisez-la, sinon créez une nouvelle
+        Address addressToUse;
+        if (existingAddress != null) {
+            System.out.println("coucou adresse nulles");
+            addressToUse = existingAddress;
+        } else {
+            System.out.println("non je me suis trouvé hahaha");
+            addressToUse = addressRepository.save(selectedAddress);
+        }
+
+        // Créer la commande avec l'adresse de livraison sélectionnée
         Order order = new Order();
         order.setUser(cart.getUser());
         order.setOrderDate(LocalDate.now());
         order.setTotalAmount(cart.getTotalPrice());
-        order.setOrderStatus("Order Accepted!");
+        order.setStatus(OrderStatus.PROCESSING);
         order.setPayment(payment);
 
-        // Save the order in the repository
+
         Order savedOrder = orderRepository.save(order);
 
+
+
+        // Créer la livraison associée à la commande
+        Delivery delivery = new Delivery();
+        delivery.setOrder(savedOrder);
+        delivery.setDeliveryAddress(selectedAddress);
+        delivery.setDeliveryStatus(DeliveryStatus.PENDING); // Statut initial à PENDING
+        deliveryRepository.save(delivery);
+
+
+        savedOrder.setDelivery(delivery);
+
         List<CartProduct> cartItems = cart.getCartItems();
+        List<CartProduct> itemsToDelete = new ArrayList<>(); // Liste des items à supprimer
+
         if (cartItems.isEmpty()) {
             throw new NotFoundException("Cart is empty");
         }
@@ -75,21 +115,59 @@ public class OrderService {
             orderProduct.setOrderedProductPrice(cartItem.getProductPrice());
             orderProduct.setOrder(savedOrder);
             orderItems.add(orderProduct);
+            itemsToDelete.add(cartItem); // Ajoutez à la liste des items à supprimer
         }
 
         orderProductRepository.saveAll(orderItems);
 
-        for (CartProduct cartItem : cartItems) {
+        // Supprimez tous les produits du panier après avoir enregistré les commandes
+        for (CartProduct cartItem : itemsToDelete) {
             Product product = cartItem.getProduct();
             int quantity = cartItem.getQuantity();
-
-            // Remove product from cart and update stock
-            cartService.deleteProductFromCart(cartId, product.getProduct_id());
+            cartService.deleteProductFromCart(cartId, cartItem.getProduct().getProduct_id());
             product.setStock(product.getStock() - quantity);
         }
 
-        return order;
+        return savedOrder;
     }
+
+
+
+    //update order status
+    public Order updateOrderStatus(Integer orderId, OrderStatus newStatus) throws NotFoundException {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new NotFoundException("Order not found"));
+
+        order.setStatus(newStatus);
+
+        // Vérifie si la commande a une livraison associée
+        Delivery delivery = order.getDelivery();
+        if (delivery != null) {
+            if (newStatus.equals(OrderStatus.SHIPPED)) {
+                delivery.setDeliveryStatus(DeliveryStatus.SHIPPED);
+            } else if (newStatus.equals(OrderStatus.DELIVERED)) {
+                delivery.setDeliveryStatus(DeliveryStatus.DELIVERED);
+            }
+            deliveryRepository.save(delivery);
+        }
+
+        return orderRepository.save(order);
+    }
+
+    //Cancel an order
+    public Order cancelOrder(Integer orderId) throws NotFoundException {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new NotFoundException("Order not found"));
+
+        if (order.getStatus() == OrderStatus.SHIPPED || order.getStatus() == OrderStatus.DELIVERED) {
+            throw new IllegalStateException("Cannot cancel order that is already shipped or delivered");
+        }
+
+        order.setStatus(OrderStatus.CANCELLED);
+
+        return orderRepository.save(order);
+    }
+
 
 
 }
