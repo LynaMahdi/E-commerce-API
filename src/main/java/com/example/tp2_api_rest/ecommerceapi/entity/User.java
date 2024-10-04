@@ -30,8 +30,10 @@ public class User implements UserDetails {
     @Column(nullable = false)
     String username;
 
+    @Column(nullable = false)
     String email;
 
+    @Column(nullable = false)
     String password;
 
     @Enumerated(EnumType.STRING)
