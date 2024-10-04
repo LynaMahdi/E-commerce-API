@@ -1,6 +1,7 @@
 package com.example.tp2_api_rest.ecommerceapi.controller;
 
 
+import com.example.tp2_api_rest.ecommerceapi.entity.Order;
 import com.example.tp2_api_rest.ecommerceapi.exceptions.NotFoundException;
 import com.example.tp2_api_rest.ecommerceapi.responses.AuthResponse;
 import com.example.tp2_api_rest.ecommerceapi.responses.LoginRequest;
@@ -71,6 +72,12 @@ public class AuthController {
         return ResponseEntity.ok(authService.refreshToken(request));
     }
 
+/*
+    @GetMapping("/myOrders")
+    public ResponseEntity<List<Order>> allMyOrders() {
+        List<User> users = authService.allUsers();
 
+        return ResponseEntity.ok(users);
+    }*/
 
 }

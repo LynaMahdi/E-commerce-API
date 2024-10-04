@@ -6,6 +6,7 @@ import com.example.tp2_api_rest.ecommerceapi.entity.Cart;
 import com.example.tp2_api_rest.ecommerceapi.exceptions.NotFoundException;
 import com.example.tp2_api_rest.ecommerceapi.exceptions.RessourceExists;
 import com.example.tp2_api_rest.ecommerceapi.repository.AddressRepository;
+import com.example.tp2_api_rest.ecommerceapi.repository.CartRepository;
 import com.example.tp2_api_rest.ecommerceapi.responses.AuthResponse;
 import com.example.tp2_api_rest.ecommerceapi.responses.LoginRequest;
 import com.example.tp2_api_rest.ecommerceapi.responses.RegisterRequest;
@@ -38,6 +39,7 @@ public class AuthService {
     private final AuthenticationManager authManager;
     private final AddressRepository addressRepository;
     private final UserRepository userRepository;
+    private final CartRepository cartRepository;
 
     public AuthResponse login(LoginRequest request) {
         authManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
@@ -74,7 +76,6 @@ public class AuthService {
             // Créer un panier pour l'utilisateur
             Cart cart = new Cart();
             user.setCart(cart);
-
             // Vérifier si une adresse est fournie
             if (request.getAddress() != null) {
                 String country = request.getAddress().getCountry();
@@ -103,10 +104,13 @@ public class AuthService {
 
             // Sauvegarder l'utilisateur
             User registeredUser = userRespository.save(user);
-
+            System.out.println("je suis leuser cree "+ registeredUser);
             // Associer le panier à l'utilisateur
-            cart.setUser(registeredUser);
 
+
+            cart.setUser(registeredUser);
+            cart.setTotalPrice(0.0);
+            cart = cartRepository.save(cart);
             // Générer les tokens
             String accessToken = jwtService.getToken(registeredUser);
             String refreshToken = jwtService.generateRefreshToken(registeredUser);

@@ -5,7 +5,6 @@ import com.example.tp2_api_rest.ecommerceapi.exceptions.NotFoundException;
 import com.example.tp2_api_rest.ecommerceapi.repository.*;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
-import org.antlr.v4.runtime.misc.LogManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -185,6 +184,19 @@ public class OrderService {
         orderRepository.save(order);
         return "Order has been successfully cancelled";
 
+    }
+
+
+    //Get all the orders
+    public List<Order> getAllOrders() {
+        return orderRepository.findAll();
+    }
+
+
+    //Get a specific Order
+    public Order getOrderById(Integer id) throws NotFoundException {
+        return orderRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Category not found with ID: " + id));
     }
 
 
