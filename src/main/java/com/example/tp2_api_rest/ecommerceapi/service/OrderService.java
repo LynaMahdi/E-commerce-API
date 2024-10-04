@@ -70,10 +70,8 @@ public class OrderService {
         // Si l'adresse existe, utilisez-la, sinon créez une nouvelle
         Address addressToUse;
         if (existingAddress != null) {
-            System.out.println("coucou adresse nulles");
             addressToUse = existingAddress;
         } else {
-            System.out.println("non je me suis trouvé hahaha");
             addressToUse = addressRepository.save(selectedAddress);
         }
 
@@ -93,7 +91,7 @@ public class OrderService {
         // Créer la livraison associée à la commande
         Delivery delivery = new Delivery();
         delivery.setOrder(savedOrder);
-        delivery.setDeliveryAddress(selectedAddress);
+        delivery.setDeliveryAddress(addressToUse);
         delivery.setDeliveryStatus(DeliveryStatus.PENDING); // Statut initial à PENDING
         deliveryRepository.save(delivery);
 
@@ -138,15 +136,24 @@ public class OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new NotFoundException("Order not found"));
 
+        // Mettre à jour le statut de la commande
         order.setStatus(newStatus);
 
-        // Vérifie si la commande a une livraison associée
+        // Vérifier si une livraison est associée à la commande
         Delivery delivery = order.getDelivery();
         if (delivery != null) {
-            if (newStatus.equals(OrderStatus.SHIPPED)) {
-                delivery.setDeliveryStatus(DeliveryStatus.SHIPPED);
-            } else if (newStatus.equals(OrderStatus.DELIVERED)) {
-                delivery.setDeliveryStatus(DeliveryStatus.DELIVERED);
+            switch (newStatus) {
+                case PROCESSING:
+                    delivery.setDeliveryStatus(DeliveryStatus.PENDING);
+                    break;
+                case SHIPPED:
+                    delivery.setDeliveryStatus(DeliveryStatus.SHIPPED);
+                    break;
+                case DELIVERED:
+                    delivery.setDeliveryStatus(DeliveryStatus.DELIVERED);
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unknown order status: " + newStatus);
             }
             deliveryRepository.save(delivery);
         }
@@ -154,18 +161,30 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
+
     //Cancel an order
-    public Order cancelOrder(Integer orderId) throws NotFoundException {
+    public String cancelOrder(Integer orderId) throws NotFoundException {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new NotFoundException("Order not found"));
 
+        // Vérifier si la commande est éligible
         if (order.getStatus() == OrderStatus.SHIPPED || order.getStatus() == OrderStatus.DELIVERED) {
-            throw new IllegalStateException("Cannot cancel order that is already shipped or delivered");
+            return "Cannot cancel an order that has already been shipped or delivered";
         }
 
+        // Mettre à jour le statut de la commande
         order.setStatus(OrderStatus.CANCELLED);
 
-        return orderRepository.save(order);
+        // Mettre à jour le statut de livraison si une livraison est associée
+        Delivery delivery = order.getDelivery();
+        if (delivery != null) {
+            delivery.setDeliveryStatus(DeliveryStatus.CANCELELD);
+            deliveryRepository.save(delivery);
+        }
+
+        orderRepository.save(order);
+        return "Order has been successfully cancelled";
+
     }
 
 

@@ -5,6 +5,7 @@ import com.example.tp2_api_rest.ecommerceapi.entity.Delivery;
 import com.example.tp2_api_rest.ecommerceapi.entity.DeliveryStatus;
 import com.example.tp2_api_rest.ecommerceapi.entity.Order;
 import com.example.tp2_api_rest.ecommerceapi.exceptions.NotFoundException;
+import com.example.tp2_api_rest.ecommerceapi.repository.AddressRepository;
 import com.example.tp2_api_rest.ecommerceapi.repository.DeliveryRepository;
 import com.example.tp2_api_rest.ecommerceapi.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,9 @@ public class DeliveryService {
     private DeliveryRepository deliveryRepository;
     @Autowired
     private OrderRepository orderRepository;
+
+    @Autowired
+    private AddressRepository addressRepository;
 
     // Méthode pour suivre l'état de la livraison
     public Delivery getDeliveryByOrderId(Integer orderId) throws NotFoundException {
@@ -48,8 +52,27 @@ public class DeliveryService {
         if (!deliveryOptional.isPresent()) {
             throw new Exception("Livraison non trouvée");
         }
+
+        // Vérifiez si l'adresse existe déjà dans la base de données
+        Address existingAddress = addressRepository.findByStreetAndCityAndPostalCodeAndCountry(
+                newAddress.getStreet(),
+                newAddress.getCity(),
+                newAddress.getPostalCode(),
+                newAddress.getCountry()
+        );
+
+        // Si l'adresse existe, utilisez-la, sinon créez une nouvelle
+        Address addressToUse;
+        if (existingAddress != null) {
+            addressToUse = existingAddress;
+        } else {
+            System.out.println("non je me suis trouvé hahaha");
+            addressToUse = addressRepository.save(newAddress);
+        }
+
+
         Delivery delivery = deliveryOptional.get();
-        delivery.setDeliveryAddress(newAddress);
+        delivery.setDeliveryAddress(addressToUse);
         return deliveryRepository.save(delivery);
     }
 }

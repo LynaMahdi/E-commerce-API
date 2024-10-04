@@ -45,8 +45,8 @@ public class OrderController {
     }
 
     @PutMapping("/{orderId}/cancel")
-    public ResponseEntity<Order> cancelOrder(@PathVariable Integer orderId) throws NotFoundException {
-        Order cancelledOrder = orderService.cancelOrder(orderId);
+    public ResponseEntity<String> cancelOrder(@PathVariable Integer orderId) throws NotFoundException {
+        String cancelledOrder = orderService.cancelOrder(orderId);
         return ResponseEntity.ok(cancelledOrder);
     }
 
