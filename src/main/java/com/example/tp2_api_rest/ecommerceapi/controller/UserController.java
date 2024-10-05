@@ -1,6 +1,7 @@
 package com.example.tp2_api_rest.ecommerceapi.controller;
 
 
+import com.example.tp2_api_rest.ecommerceapi.responses.UserProfile;
 import com.example.tp2_api_rest.ecommerceapi.service.AuthService;
 import com.example.tp2_api_rest.ecommerceapi.entity.User;
 import org.springframework.web.bind.annotation.RestController;
@@ -31,8 +32,8 @@ public class UserController {
     }
 
     @GetMapping("/")
-    public ResponseEntity<List<User>> allUsers() {
-        List<User> users = authService.allUsers();
+    public ResponseEntity<List<UserProfile>> allUsers() {
+        List<UserProfile> users = authService.allUsers();
 
         return ResponseEntity.ok(users);
     }}

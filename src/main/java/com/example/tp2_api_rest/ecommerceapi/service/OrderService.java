@@ -6,6 +6,10 @@ import com.example.tp2_api_rest.ecommerceapi.repository.*;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -41,8 +45,12 @@ public class OrderService {
 
 
     //create order
-    public Order createOrderAfterPaymentConfirmation(Integer userId, Integer cartId, Long paymentId, String paymentIntentId, Address selectedAddress) throws NotFoundException, StripeException, Exception {
-        Cart cart = cartRepository.findCartByUserAndCartId(userId, cartId);
+    public Order createOrderAfterPaymentConfirmation(Long paymentId, String paymentIntentId, Address selectedAddress) throws NotFoundException, StripeException, Exception {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User currentUser = (User) authentication.getPrincipal();
+        Integer userId=currentUser.getUser_id();
+        Cart cart=cartRepository.findByUser(userId);
         if (cart == null) {
             throw new NotFoundException("Cart not found");
         }
@@ -121,7 +129,7 @@ public class OrderService {
         for (CartProduct cartItem : itemsToDelete) {
             Product product = cartItem.getProduct();
             int quantity = cartItem.getQuantity();
-            cartService.deleteProductFromCart(cartId, cartItem.getProduct().getProduct_id());
+            cartService.deleteProductFromCart(cartItem.getProduct().getProduct_id());
             product.setStock(product.getStock() - quantity);
         }
 
@@ -196,7 +204,20 @@ public class OrderService {
     //Get a specific Order
     public Order getOrderById(Integer id) throws NotFoundException {
         return orderRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Category not found with ID: " + id));
+                .orElseThrow(() -> new NotFoundException("Order not found with ID: " + id));
+    }
+
+
+
+    public List<Order> getMyOrders(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        User currentUser = (User) authentication.getPrincipal();
+
+        return  orderRepository.findByUser(currentUser);
+
+
+
     }
 
 

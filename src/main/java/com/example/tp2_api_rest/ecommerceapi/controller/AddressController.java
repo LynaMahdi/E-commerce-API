@@ -18,14 +18,14 @@ public class AddressController {
     private AddressService addressService;
 
     // Créer une nouvelle adresse si elle n'existe pas
-    @PostMapping
+    @PostMapping("/create-address")
     public ResponseEntity<Address> createAddress(@RequestBody Address address) {
         Address createdAddress = addressService.createAddress(address);
         return ResponseEntity.ok(createdAddress);
     }
 
     // Récupérer toutes les adresses
-    @GetMapping
+    @GetMapping("/all")
     public ResponseEntity<List<Address>> getAllAddresses() {
         List<Address> addresses = addressService.getAllAddresses();
         return ResponseEntity.ok(addresses);
@@ -43,7 +43,7 @@ public class AddressController {
     }
 
     // Mettre à jour une adresse par ID
-    @PutMapping("/{id}")
+    @PutMapping("/update/{id}")
     public ResponseEntity<Address> updateAddress(@PathVariable Long id, @RequestBody Address newAddress) {
         try {
             Address updatedAddress = addressService.updateAddress(id, newAddress);
@@ -54,11 +54,13 @@ public class AddressController {
     }
 
     // Supprimer une adresse par ID
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> deleteAddress(@PathVariable Long id) {
         try {
+
             addressService.deleteAddress(id);
             return ResponseEntity.noContent().build();
+
         } catch (NotFoundException e) {
             return ResponseEntity.notFound().build();
         }

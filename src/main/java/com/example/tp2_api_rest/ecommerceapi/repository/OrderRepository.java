@@ -21,4 +21,6 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
 
     @Query("SELECT o FROM Order o WHERE o.order_id = ?1")
     Order findByOrderId(Integer orderId);
+
+
 }

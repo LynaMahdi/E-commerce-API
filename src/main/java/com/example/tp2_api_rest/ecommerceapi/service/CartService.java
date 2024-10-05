@@ -32,14 +32,15 @@ public class CartService {
     private CartProductRepository cartProductRepository;
 
 
-    public Cart addProductToCart(Integer cartId, Integer productId, Integer quantity) throws NotFoundException {
+    public Cart addProductToCart(Integer productId, Integer quantity) throws NotFoundException {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         User currentUser = (User) authentication.getPrincipal();
-
+        Cart cartRe=cartRepository.findByUser(currentUser.getUser_id());
+        Integer cartId=cartRe.getCartId();
         // Vérifier si le panier existe, sinon créer un nouveau panier
-        Cart cart = cartRepository.findById(cartId).orElseGet(() -> {
+        Cart cart = cartRepository.findById(cartRe.getCartId()).orElseGet(() -> {
             Cart newCart = new Cart();
             newCart.setTotalPrice(0.0);  // initialiser le total à 0
             newCart.setUser(currentUser); // Associate the cart with the current user
@@ -112,12 +113,16 @@ public class CartService {
         return cartRepository.save(cart);
     }
 
-    public Cart getCart(Integer cartId) throws NotFoundException {
+    public Cart getCart() throws NotFoundException {
 
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         User currentUser = (User) authentication.getPrincipal();
+
+        Cart cartRe=cartRepository.findByUser(currentUser.getUser_id());
+        Integer cartId=cartRe.getCartId();
+
 
         // Vérifier si le panier existe
         Cart cart = cartRepository.findById(cartId)
@@ -127,11 +132,10 @@ public class CartService {
         if (!cart.getUser().getUser_id().equals(currentUser.getUser_id())) {
             throw new NotFoundException("Access denied: This cart does not belong to you.");
         }
-        // Optionnel : si vous voulez inclure des informations sur les produits
+        //inclure des informations sur les produits
         List<CartProduct> cartItems = cart.getCartItems();
         cartItems.forEach(cartItem -> {
             Product product = cartItem.getProduct();
-            // Par exemple, vous pouvez charger d'autres informations sur le produit ici si nécessaire
         });
 
         return cart;
@@ -151,7 +155,13 @@ public class CartService {
     //delete a product from cart
 
     @Transactional
-    public ResponseEntity<String> deleteProductFromCart(Integer cartId, Integer productId) throws NotFoundException {
+    public ResponseEntity<String> deleteProductFromCart(Integer productId) throws NotFoundException {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User currentUser = (User) authentication.getPrincipal();
+
+        Cart cartRe=cartRepository.findByUser(currentUser.getUser_id());
+        Integer cartId=cartRe.getCartId();
         // Vérifie si le panier existe
         Cart cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new NotFoundException("Cart not found with ID: " + cartId));

@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/payment/secure")
 public class PaymentController {
 
+    @Autowired
     private PaymentService paymentService;
 
     @Autowired

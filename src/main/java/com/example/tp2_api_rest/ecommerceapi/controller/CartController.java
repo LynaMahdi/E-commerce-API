@@ -22,14 +22,13 @@ public class CartController {
     private CartService cartService;
 
 
-    @PostMapping("/{cartId}/addProduct")
+    @PostMapping("/addProduct")
     public ResponseEntity<Cart> addProductToCart(
-            @PathVariable Integer cartId,
             @RequestParam Integer productId,
             @RequestParam Integer quantity) {
         try {
             // Appel du service pour ajouter un produit au panier
-            Cart updatedCart = cartService.addProductToCart(cartId, productId, quantity);
+            Cart updatedCart = cartService.addProductToCart( productId, quantity);
             return new ResponseEntity<>(updatedCart, HttpStatus.OK);
         } catch (NotFoundException e) {
             // Gestion des erreurs si le panier ou le produit n'est pas trouvé
@@ -41,10 +40,10 @@ public class CartController {
     }
 
 
-    @GetMapping("/{cartId}")
-    public ResponseEntity<Cart> getCart(@PathVariable Integer cartId) {
+    @GetMapping("/getMyCart")
+    public ResponseEntity<Cart> getCart() {
         try {
-            Cart cart = cartService.getCart(cartId);
+            Cart cart = cartService.getCart();
             return new ResponseEntity<>(cart, HttpStatus.OK);
         } catch (NotFoundException e) {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
@@ -62,13 +61,12 @@ public class CartController {
         }
     }
 
-    @DeleteMapping("/{cartId}/removeProduct/{productId}")
+    @DeleteMapping("/removeProduct/{productId}")
     public ResponseEntity<String> deleteProductFromCart(
-            @PathVariable Integer cartId,
             @PathVariable Integer productId) {
         try {
             // Appeler la méthode de service qui retourne un ResponseEntity
-            return cartService.deleteProductFromCart(cartId, productId); // Renvoie directement le ResponseEntity du service
+            return cartService.deleteProductFromCart(productId); // Renvoie directement le ResponseEntity du service
         } catch (NotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage()); // 404 Not Found
         } catch (Exception e) {

@@ -7,9 +7,7 @@ import com.example.tp2_api_rest.ecommerceapi.exceptions.NotFoundException;
 import com.example.tp2_api_rest.ecommerceapi.exceptions.RessourceExists;
 import com.example.tp2_api_rest.ecommerceapi.repository.AddressRepository;
 import com.example.tp2_api_rest.ecommerceapi.repository.CartRepository;
-import com.example.tp2_api_rest.ecommerceapi.responses.AuthResponse;
-import com.example.tp2_api_rest.ecommerceapi.responses.LoginRequest;
-import com.example.tp2_api_rest.ecommerceapi.responses.RegisterRequest;
+import com.example.tp2_api_rest.ecommerceapi.responses.*;
 import com.example.tp2_api_rest.ecommerceapi.jwt.JwtService;
 import com.example.tp2_api_rest.ecommerceapi.jwt.TokenRefreshRequest;
 import com.example.tp2_api_rest.ecommerceapi.repository.UserRepository;
@@ -28,6 +26,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -48,7 +47,6 @@ public class AuthService {
         // Générer le token d'accès et le refresh token
         String accessToken = jwtService.getToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);  // Générer le refresh token
-
         return AuthResponse.builder()
                 .token(accessToken)
                 .refreshToken(refreshToken)
@@ -104,7 +102,6 @@ public class AuthService {
 
             // Sauvegarder l'utilisateur
             User registeredUser = userRespository.save(user);
-            System.out.println("je suis leuser cree "+ registeredUser);
             // Associer le panier à l'utilisateur
 
 
@@ -130,11 +127,14 @@ public class AuthService {
         User user = userRespository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
-        // Update user properties
-        user.setUsername(request.getUsername());
-        user.setEmail(request.getEmail());
+        if (request.getUsername() != null) {
+            user.setUsername(request.getUsername());
+        }
 
-        // If a new password is provided, encode and set it
+        if (request.getEmail() != null) {
+            user.setEmail(request.getEmail());
+        }
+
         if (request.getPassword() != null) {
             user.setPassword(passwordEncoder.encode(request.getPassword()));
         }
@@ -158,10 +158,14 @@ public class AuthService {
                 address = addressRepository.save(address); // Save the new address
             }
 
-            // Update the user's addresses with a mutable list
-            List<Address> updatedAddresses = new ArrayList<>();
-            updatedAddresses.add(address);
-            user.setAddresses(updatedAddresses);
+            List<Address> addresses = user.getAddresses();
+            if (addresses == null) {
+                addresses = new ArrayList<>();
+            }
+
+            addresses.clear();
+            addresses.add(address);
+            user.setAddresses(addresses);
         }
 
         // Save the updated user
@@ -169,13 +173,36 @@ public class AuthService {
     }
 
 
-    public List<User> allUsers() {
-        List<User> users = new ArrayList<>();
 
-        userRespository.findAll().forEach(users::add);
+    public List<UserProfile> allUsers() {
+        List<UserProfile> userDTOs = new ArrayList<>();
 
-        return users;
+        userRespository.findAll().forEach(user -> {
+            UserProfile userDTO = new UserProfile();
+            userDTO.setUsername(user.getUsername());
+            userDTO.setEmail(user.getEmail());
+
+            // Mapper les adresses de l'utilisateur en AddressDTO
+            List<AddressDTO> addressDTOs = user.getAddresses().stream()
+                    .map(address -> {
+                        AddressDTO addressDTO = new AddressDTO();
+                        addressDTO.setStreet(address.getStreet());
+                        addressDTO.setCity(address.getCity());
+                        addressDTO.setPostalCode(address.getPostalCode());
+                        addressDTO.setCountry(address.getCountry());
+                        return addressDTO;
+                    })
+                    .collect(Collectors.toList());
+
+            userDTO.setAddresses(addressDTOs);
+
+            userDTOs.add(userDTO);
+        });
+
+        return userDTOs;
     }
+
+
 
 
     // Rafraîchir le token
@@ -197,4 +224,23 @@ public class AuthService {
         throw new RuntimeException("Refresh token invalide");
     }
 
+
+    //profile
+    public  UserProfile mapToUserProfileDTO(User user) {
+        UserProfile dto = new UserProfile();
+        dto.setUsername(user.getUsername());
+        dto.setEmail(user.getEmail());
+
+        // Mapper les adresses
+        List<AddressDTO> addresses = user.getAddresses().stream()
+                .map(address -> new AddressDTO(
+                        address.getStreet(),
+                        address.getCity(),
+                        address.getPostalCode(),
+                        address.getCountry()))
+                .collect(Collectors.toList());
+        dto.setAddresses(addresses);
+
+        return dto;
+    }
 }

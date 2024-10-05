@@ -42,7 +42,10 @@ public class ProductController {
     }
 
     // Ajouter un nouveau produit
-    @PostMapping("/admin/categories/{categoryId}/product")
+
+    @PostMapping("product/admin/addTocategories/{categoryId}")
+    @PreAuthorize("hasRole('ADMIN')")
+
     public ResponseEntity<Product> addProduct(@PathVariable Integer categoryId, @RequestBody Product product) {
         try {
             Product savedProduct = productService.addProduct(categoryId, product);
@@ -56,7 +59,7 @@ public class ProductController {
 
 
     // Mettre à jour un produit
-    @PutMapping("/product/{id}")
+    @PutMapping("/product/update/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Product> updateProduct(@PathVariable Integer id, @RequestBody Product updatedProduct) {
         try {
@@ -70,7 +73,7 @@ public class ProductController {
     }
 
     // Supprimer un produit
-    @DeleteMapping("/product/{id}")
+    @DeleteMapping("/product/delete/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteProduct(@PathVariable Integer id) {
         try{

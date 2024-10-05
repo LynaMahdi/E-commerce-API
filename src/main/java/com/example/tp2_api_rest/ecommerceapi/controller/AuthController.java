@@ -8,11 +8,13 @@ import com.example.tp2_api_rest.ecommerceapi.responses.LoginRequest;
 import com.example.tp2_api_rest.ecommerceapi.responses.RegisterRequest;
 import com.example.tp2_api_rest.ecommerceapi.jwt.TokenRefreshRequest;
 import com.example.tp2_api_rest.ecommerceapi.repository.UserRepository;
+import com.example.tp2_api_rest.ecommerceapi.responses.UserProfile;
 import com.example.tp2_api_rest.ecommerceapi.service.AuthService;
 import com.example.tp2_api_rest.ecommerceapi.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/authentification")
 @RequiredArgsConstructor
 public class AuthController {
 
@@ -37,31 +39,35 @@ public class AuthController {
         return ResponseEntity.ok(authService.login(request));
     }
 
-    @GetMapping("/profile")
-    public ResponseEntity<User> getProfile() {
+
+
+    @GetMapping("/myprofile")
+    public ResponseEntity<UserProfile> getProfile() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication != null && authentication.isAuthenticated() && authentication.getPrincipal() instanceof User) {
             User currentUser = (User) authentication.getPrincipal();
 
-            // Initialize addresses
-            currentUser.getAddresses().size(); // This initializes the collection
+            // Mapper l'utilisateur actuel vers le DTO
+            UserProfile profileDTO = authService.mapToUserProfileDTO(currentUser);
 
-            return ResponseEntity.ok(currentUser);
+            return ResponseEntity.ok(profileDTO);
         }
 
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
 
-    @GetMapping("/all")
-    public ResponseEntity<List<User>> allUsers() {
-        List<User> users = authService.allUsers();
+    @GetMapping("/allUsers")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<UserProfile>> allUsers() {
+        List<UserProfile> users = authService.allUsers();
 
         return ResponseEntity.ok(users);
     }
 
     @PutMapping("/update/{userId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<User> updateUser(@PathVariable Integer userId, @RequestBody RegisterRequest request) throws NotFoundException {
         User updatedUser = authService.updateUser(userId, request);
         return ResponseEntity.ok(updatedUser); // Return the updated user
@@ -72,12 +78,6 @@ public class AuthController {
         return ResponseEntity.ok(authService.refreshToken(request));
     }
 
-/*
-    @GetMapping("/myOrders")
-    public ResponseEntity<List<Order>> allMyOrders() {
-        List<User> users = authService.allUsers();
 
-        return ResponseEntity.ok(users);
-    }*/
 
 }

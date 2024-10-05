@@ -29,7 +29,7 @@ public class OrderController {
             Integer userId = ((User) authentication.getPrincipal()).getUser_id();
 
 
-            Order createdOrder = orderService.createOrderAfterPaymentConfirmation(userId, cartId, paymentId,paymentIntentId,address);
+            Order createdOrder = orderService.createOrderAfterPaymentConfirmation(paymentId,paymentIntentId,address);
 
             return new ResponseEntity<>(createdOrder, HttpStatus.CREATED);
 
@@ -63,5 +63,12 @@ public class OrderController {
         return new ResponseEntity<>(order, HttpStatus.OK);
     }
 
+
+    @GetMapping("/myOrders")
+    public List<Order> allMyOrders() {
+        List<Order> orders = orderService.getMyOrders();
+
+        return (orders);
+    }
 
 }

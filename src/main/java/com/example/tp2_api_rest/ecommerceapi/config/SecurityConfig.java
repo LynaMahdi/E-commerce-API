@@ -23,21 +23,21 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-            .csrf(csrf ->
-                csrf
-                .disable())
-            .authorizeHttpRequests(authRequest -> authRequest
-                    // Autoriser l'accès non authentifié pour login et register
-                    .requestMatchers("/auth/login", "/auth/register","/auth/refresh-token").permitAll()
-                    // Protéger les endpoints nécessitant une authentification
-                    .requestMatchers("/auth/profile","/users/me", "/api/product","/api/product/**","/api/orders","/api/orders/**","/api/categories/**","/api/categories/**","/api/**","/api/admin/categories/","/auth/update/**","/auth/all").authenticated()
-            )
-            .sessionManagement(sessionManager ->
-               sessionManager
-                   .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authenticationProvider(authProvider)
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-            .build();
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(authRequest -> authRequest
+                        // Autoriser l'accès non authentifié pour login et register
+                        .requestMatchers("/api/authentification/login", "/api/authentification/register", "/api/authentification/refresh-token","api/categories/all","api/product/all").permitAll()
+
+                        // Restreindre les endpoints aux utilisateurs authentifiés avec rôle ADMIN
+                        .requestMatchers("/api/authentification/allUsers", "/api/authentification/update/**","api/categories/addCategory","api/categories/update/**","api/categories/delete/**","api/product/admin/addTocategories/**","api/product/update/**").hasRole("ADMIN")
+
+                        // Autoriser tous les utilisateurs authentifiés pour certains endpoints
+                        .requestMatchers("/api/authentification/myprofile", "/api/cart/**",   "/api/orders", "/api/orders/**",  "/api/authentification/update/**","/api/payment/secure/**").authenticated()
+                )
+                .sessionManagement(sessionManager -> sessionManager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authenticationProvider(authProvider)
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .build();
     }
 
 }
