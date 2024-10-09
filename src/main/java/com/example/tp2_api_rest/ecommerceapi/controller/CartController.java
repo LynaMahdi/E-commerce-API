@@ -63,10 +63,10 @@ public class CartController {
 
     @DeleteMapping("/removeProduct/{productId}")
     public ResponseEntity<String> deleteProductFromCart(
-            @PathVariable Integer productId) {
+            @PathVariable Integer productId , @RequestParam Integer quantity) {
         try {
             // Appeler la méthode de service qui retourne un ResponseEntity
-            return cartService.deleteProductFromCart(productId); // Renvoie directement le ResponseEntity du service
+            return cartService.deleteProductFromCart(productId,quantity); // Renvoie directement le ResponseEntity du service
         } catch (NotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage()); // 404 Not Found
         } catch (Exception e) {

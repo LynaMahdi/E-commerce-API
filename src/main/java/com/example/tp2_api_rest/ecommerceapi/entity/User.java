@@ -39,6 +39,11 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     Role role;
 
+    @OneToMany(mappedBy = "user", cascade = { CascadeType.ALL }, orphanRemoval = true)
+    @JsonBackReference
+    private List<Order> orders = new ArrayList<>();
+
+
     //eager a chaque fois que je charge un utilisateur les adresses aussis seront chargées
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(

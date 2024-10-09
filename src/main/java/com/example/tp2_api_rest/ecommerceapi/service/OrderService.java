@@ -124,13 +124,18 @@ public class OrderService {
         }
 
         orderProductRepository.saveAll(orderItems);
-
+        System.out.println("les trucs a supprimer :"+ itemsToDelete);
         // Supprimez tous les produits du panier après avoir enregistré les commandes
         for (CartProduct cartItem : itemsToDelete) {
             Product product = cartItem.getProduct();
+
             int quantity = cartItem.getQuantity();
-            cartService.deleteProductFromCart(cartItem.getProduct().getProduct_id());
+
+            // Mise à jour du stock
             product.setStock(product.getStock() - quantity);
+
+            // Suppression de l'élément du panier
+            cartService.deleteProductFromCart(cartItem.getProduct().getProduct_id(),quantity);
         }
 
         return savedOrder;

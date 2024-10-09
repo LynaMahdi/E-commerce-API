@@ -7,6 +7,7 @@ import com.example.tp2_api_rest.ecommerceapi.exceptions.NotFoundException;
 import com.example.tp2_api_rest.ecommerceapi.exceptions.RessourceExists;
 import com.example.tp2_api_rest.ecommerceapi.repository.AddressRepository;
 import com.example.tp2_api_rest.ecommerceapi.repository.CartRepository;
+import com.example.tp2_api_rest.ecommerceapi.repository.OrderRepository;
 import com.example.tp2_api_rest.ecommerceapi.responses.*;
 import com.example.tp2_api_rest.ecommerceapi.jwt.JwtService;
 import com.example.tp2_api_rest.ecommerceapi.jwt.TokenRefreshRequest;
@@ -41,6 +42,7 @@ public class AuthService {
     private final AddressRepository addressRepository;
     private final UserRepository userRepository;
     private final CartRepository cartRepository;
+    private final OrderRepository orderRepository;
 
     public AuthResponse login(LoginRequest request) {
         authManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
@@ -70,7 +72,7 @@ public class AuthService {
                     .username(request.getUsername())
                     .email(request.getEmail())
                     .password(passwordEncoder.encode(request.getPassword()))
-                    .role(Role.USER)
+                    .role(request.getRole())
                     .build();
 
             // Créer un panier pour l'utilisateur
@@ -263,6 +265,6 @@ public class AuthService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
 
         // Suppression de l'utilisateur
-        userRepository.delete(user);
-    }
+        orderRepository.deleteAllByUser(user);
+        userRepository.delete(user);    }
 }

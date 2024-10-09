@@ -155,7 +155,7 @@ public class CartService {
     //delete a product from cart
 
     @Transactional
-    public ResponseEntity<String> deleteProductFromCart(Integer productId) throws NotFoundException {
+    public ResponseEntity<String> deleteProductFromCart(Integer productId,Integer quantityToRemove) throws NotFoundException {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User currentUser = (User) authentication.getPrincipal();
@@ -173,19 +173,37 @@ public class CartService {
             throw new NotFoundException("Product not found with ID: " + productId);
         }
 
+        // Vérifie si la quantité à retirer est valide
+        if (quantityToRemove <= 0) {
+            return ResponseEntity.badRequest().body("Quantity to remove must be greater than zero.");
+        }
+        if (quantityToRemove > cartProduct.getQuantity()) {
+            return ResponseEntity.badRequest().body("Cannot remove more than the available quantity in the cart.");
+        }
+
         // Met à jour le prix total du panier
-        cart.setTotalPrice(cart.getTotalPrice() - (cartProduct.getProductPrice() * cartProduct.getQuantity()));
+        cart.setTotalPrice(cart.getTotalPrice() - (cartProduct.getProductPrice() * quantityToRemove));
+
+        // Met à jour la quantité du produit dans le panier
+        int newQuantity = cartProduct.getQuantity() - quantityToRemove;
+        cartProduct.setQuantity(newQuantity);
+
 
         // Met à jour la quantité du produit en stock
         Product product = cartProduct.getProduct();
-        product.setStock(product.getStock() + cartProduct.getQuantity());
+        product.setStock(product.getStock() + quantityToRemove);
 
-        // Supprime le produit du panier
-        cart.getCartItems().remove(cartProduct);
+        // Si la nouvelle quantité est 0, on supprime l'élément du panier
+        if (newQuantity == 0) {
+            cart.getCartItems().remove(cartProduct);
+            cartProductRepository.delete(cartProduct);
+        }
+
+        // Sauvegarde des modifications
         cartRepository.save(cart);
-        cartProductRepository.delete(cartProduct);
+        cartProductRepository.save(cartProduct);
 
-        return ResponseEntity.ok("Product " + cartProduct.getProduct().getName() + " removed from the cart!");
+        return ResponseEntity.ok("Removed " + quantityToRemove + " of product " + cartProduct.getProduct().getName() + " from the cart!");
     }
 
 }

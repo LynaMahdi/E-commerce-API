@@ -53,7 +53,7 @@ public class PaymentService {
         System.out.println("Processing payment for email: " + userEmail + " with PaymentIntent ID: " + paymentIntentId);
 
         // Find the payment record for the user
-        Payment payment = paymentRepository.findByUserEmail(userEmail);
+        Payment payment = paymentRepository.findByUserEmailAndPaymentIntentId(userEmail,paymentIntentId);
         if (payment == null) {
             throw new Exception("Payment information is missing");
         }
