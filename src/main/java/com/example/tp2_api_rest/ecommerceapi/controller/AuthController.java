@@ -11,7 +11,9 @@ import com.example.tp2_api_rest.ecommerceapi.repository.UserRepository;
 import com.example.tp2_api_rest.ecommerceapi.responses.UserProfile;
 import com.example.tp2_api_rest.ecommerceapi.service.AuthService;
 import com.example.tp2_api_rest.ecommerceapi.entity.User;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,6 +28,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AuthController {
 
+    @Autowired
     private final AuthService authService;
     private final UserRepository userRespository;
 
@@ -58,6 +61,13 @@ public class AuthController {
     }
 
 
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(HttpServletRequest request) {
+        authService.logout(request);
+        return ResponseEntity.ok("Déconnexion réussie");
+    }
+
+
     @GetMapping("/allUsers")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<UserProfile>> allUsers() {
@@ -78,6 +88,11 @@ public class AuthController {
         return ResponseEntity.ok(authService.refreshToken(request));
     }
 
-
+    @DeleteMapping("/delete/{userId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> deleteUser(@PathVariable Integer userId) {
+        authService.deleteUserById(userId);
+        return ResponseEntity.ok("Utilisateur supprimé avec succès");
+    }
 
 }

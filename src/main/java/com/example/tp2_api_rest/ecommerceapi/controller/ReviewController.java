@@ -9,6 +9,7 @@ import com.example.tp2_api_rest.ecommerceapi.service.ProductService;
 import com.example.tp2_api_rest.ecommerceapi.service.ReviewService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -44,8 +45,9 @@ public class ReviewController {
         return ResponseEntity.ok(review);
     }
 
-    //supprimer un avis inapproprié
-    @DeleteMapping("/{reviewId}")
+    //supprimer  un  avis  inapproprié
+    @DeleteMapping("/delete/{reviewId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteReview(@PathVariable Long reviewId) {
         reviewService.deleteReview(reviewId);
         return ResponseEntity.noContent().build();

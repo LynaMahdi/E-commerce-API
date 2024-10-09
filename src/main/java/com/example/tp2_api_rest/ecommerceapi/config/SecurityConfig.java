@@ -29,10 +29,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/authentification/login", "/api/authentification/register", "/api/authentification/refresh-token","api/categories/all","api/product/all").permitAll()
 
                         // Restreindre les endpoints aux utilisateurs authentifiés avec rôle ADMIN
-                        .requestMatchers("/api/authentification/allUsers", "/api/authentification/update/**","api/categories/addCategory","api/categories/update/**","api/categories/delete/**","api/product/admin/addTocategories/**","api/product/update/**").hasRole("ADMIN")
+                        .requestMatchers("/api/authentification/allUsers","/api/authentification/delete/**", "/api/authentification/update/**","api/categories/addCategory","api/categories/update/**","api/categories/delete/**","api/product/admin/addTocategories/**","api/product/update/**","/api/reviews/delete/**").hasRole("ADMIN")
 
                         // Autoriser tous les utilisateurs authentifiés pour certains endpoints
-                        .requestMatchers("/api/authentification/myprofile", "/api/cart/**",   "/api/orders", "/api/orders/**",  "/api/authentification/update/**","/api/payment/secure/**").authenticated()
+                        .requestMatchers("/api/authentification/myprofile","/api/authentification/logout", "/api/cart/**",    "/api/orders/**",  "/api/authentification/update/**","/api/payment/secure/**","/api/reviews/product/**").authenticated()
                 )
                 .sessionManagement(sessionManager -> sessionManager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authProvider)

@@ -13,6 +13,8 @@ import com.example.tp2_api_rest.ecommerceapi.jwt.TokenRefreshRequest;
 import com.example.tp2_api_rest.ecommerceapi.repository.UserRepository;
 import com.example.tp2_api_rest.ecommerceapi.entity.Role;
 import com.example.tp2_api_rest.ecommerceapi.entity.User;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.annotations.NotFound;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -225,6 +227,15 @@ public class AuthService {
     }
 
 
+    //logout the user
+    public void logout(HttpServletRequest request) {
+        String token = jwtService.getTokenFromRequest(request);
+        if (token != null) {
+            jwtService.invalidateToken(token);
+        }
+    }
+
+
     //profile
     public  UserProfile mapToUserProfileDTO(User user) {
         UserProfile dto = new UserProfile();
@@ -242,5 +253,16 @@ public class AuthService {
         dto.setAddresses(addresses);
 
         return dto;
+    }
+
+
+
+    @Transactional
+    public void deleteUserById(Integer userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+
+        // Suppression de l'utilisateur
+        userRepository.delete(user);
     }
 }

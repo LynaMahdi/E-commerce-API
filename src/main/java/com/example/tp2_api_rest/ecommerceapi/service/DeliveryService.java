@@ -66,7 +66,6 @@ public class DeliveryService {
         if (existingAddress != null) {
             addressToUse = existingAddress;
         } else {
-            System.out.println("non je me suis trouvé hahaha");
             addressToUse = addressRepository.save(newAddress);
         }
 

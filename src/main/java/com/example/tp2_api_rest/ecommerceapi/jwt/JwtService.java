@@ -5,19 +5,21 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
 @Service
 public class JwtService {
 
     private static final String SECRET_KEY = "586E3272357538782F413F4428472B4B6250655368566B597033733676397924";
+    // Ajouter un champ pour stocker les tokens invalidés
+    private Set<String> invalidatedTokens = new HashSet<>();
 
     public String getToken(UserDetails user) {
         return getToken(new HashMap<>(), user);
@@ -53,9 +55,14 @@ public class JwtService {
         return getClaim(token, Claims::getSubject);
     }
 
+
+
     public boolean isTokenValid(String token, UserDetails userDetails) {
         final String username = getUsernameFromToken(token);
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+        // Vérifier si le token est invalide ou expiré
+        return (username.equals(userDetails.getUsername())
+                && !isTokenExpired(token)
+                && !invalidatedTokens.contains(token));
     }
 
     private Claims getAllClaims(String token) {
@@ -81,5 +88,17 @@ public class JwtService {
     }
 
 
+
+    public void invalidateToken(String token) {
+        invalidatedTokens.add(token);
+    }
+
+    public String getTokenFromRequest(HttpServletRequest request) {
+        final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            return authHeader.substring(7);
+        }
+        return null;
+    }
 
 }
