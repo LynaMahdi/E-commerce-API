@@ -27,11 +27,11 @@ public class Cart {
 
     @OneToOne
     @JoinColumn(name="user_id")
-    @JsonBackReference // Prevent circular reference
+    @JsonBackReference("cart_user") // Prevent circular reference
     private User user;
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
+    @JsonManagedReference("cart_cartItems")
     private List<CartProduct> cartItems = new ArrayList<>();
 
     private Double totalPrice;

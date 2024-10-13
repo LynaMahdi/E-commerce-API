@@ -27,18 +27,21 @@ public class DeliveryController {
     }
 
     // update status
-    @PutMapping("/{deliveryId}/status")
+    @PutMapping("/update/{deliveryId}/status")
     public ResponseEntity<Delivery> updateDeliveryStatus(@PathVariable Long deliveryId, @RequestParam DeliveryStatus status) {
         try {
+            System.out.println("Received deliveryId: " + deliveryId);
+            System.out.println("Received status: " + status);
             Delivery updatedDelivery = deliveryService.updateDeliveryStatus(deliveryId, status);
             return ResponseEntity.ok(updatedDelivery);
         } catch (Exception e) {
+            e.printStackTrace(); // Affichez la stacktrace pour plus de détails
             return ResponseEntity.badRequest().body(null);
         }
     }
 
     // update delivery address
-    @PutMapping("/{deliveryId}/address")
+    @PutMapping("/update/{deliveryId}/address")
     public ResponseEntity<Delivery> updateDeliveryAddress(@PathVariable Long deliveryId, @RequestBody Address address) {
         try {
             Delivery updatedDelivery = deliveryService.updateDeliveryAddress(deliveryId, address);

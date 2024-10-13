@@ -24,7 +24,7 @@ public class Payment {
     private String userEmail;
 
     @OneToOne(mappedBy = "payment", cascade = { CascadeType.PERSIST, CascadeType.MERGE })
-    @JsonBackReference
+    @JsonBackReference("order-payment")
     private Order order;
 
 

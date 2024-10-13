@@ -8,6 +8,7 @@ import com.example.tp2_api_rest.ecommerceapi.exceptions.NotFoundException;
 import com.example.tp2_api_rest.ecommerceapi.exceptions.RessourceExists;
 import com.example.tp2_api_rest.ecommerceapi.repository.CartProductRepository;
 import com.example.tp2_api_rest.ecommerceapi.repository.CartRepository;
+import com.example.tp2_api_rest.ecommerceapi.responses.AddProductToCartRequest;
 import com.example.tp2_api_rest.ecommerceapi.service.CartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,12 +24,10 @@ public class CartController {
 
 
     @PostMapping("/addProduct")
-    public ResponseEntity<Cart> addProductToCart(
-            @RequestParam Integer productId,
-            @RequestParam Integer quantity) {
+    public ResponseEntity<Cart> addProductToCart(@RequestBody AddProductToCartRequest request) {
         try {
             // Appel du service pour ajouter un produit au panier
-            Cart updatedCart = cartService.addProductToCart( productId, quantity);
+            Cart updatedCart = cartService.addProductToCart(request.getProductId(), request.getQuantity());
             return new ResponseEntity<>(updatedCart, HttpStatus.OK);
         } catch (NotFoundException e) {
             // Gestion des erreurs si le panier ou le produit n'est pas trouvé
@@ -38,6 +37,7 @@ public class CartController {
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         }
     }
+
 
 
     @GetMapping("/getMyCart")

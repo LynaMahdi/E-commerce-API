@@ -26,7 +26,7 @@ public class CategoryController {
         return new ResponseEntity<>(categories, HttpStatus.OK);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/get/{id}")
     public ResponseEntity<Category> getCategoryById(@PathVariable Integer id) throws NotFoundException, com.example.tp2_api_rest.ecommerceapi.exceptions.NotFoundException {
         Category category = categoryService.getCategoryById(id);
         return new ResponseEntity<>(category, HttpStatus.OK);

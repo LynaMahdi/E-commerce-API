@@ -24,12 +24,12 @@ public class Order {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    @JsonManagedReference
+    @JsonBackReference("order-user")
     private User user;
 
 
     @OneToMany(mappedBy = "order", cascade = { CascadeType.ALL})
-    @JsonManagedReference
+    @JsonManagedReference("order-orderItem") // Gérer les OrderProduct depuis Order
     private List<OrderProduct> orderItems = new ArrayList<>();
 
     private LocalDate orderDate;
@@ -41,7 +41,7 @@ public class Order {
 
     @OneToOne
     @JoinColumn(name = "payment_id")
-    @JsonManagedReference
+    @JsonManagedReference("order-payment")
     private Payment payment;
 
     private Double totalAmount;

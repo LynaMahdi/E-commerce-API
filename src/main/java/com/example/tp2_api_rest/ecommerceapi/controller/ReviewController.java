@@ -5,6 +5,7 @@ import com.example.tp2_api_rest.ecommerceapi.entity.Product;
 import com.example.tp2_api_rest.ecommerceapi.entity.User;
 import com.example.tp2_api_rest.ecommerceapi.exceptions.NotFoundException;
 import com.example.tp2_api_rest.ecommerceapi.repository.ProductRepository;
+import com.example.tp2_api_rest.ecommerceapi.responses.ReviewRequest;
 import com.example.tp2_api_rest.ecommerceapi.service.ProductService;
 import com.example.tp2_api_rest.ecommerceapi.service.ReviewService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,16 +35,17 @@ public class ReviewController {
         return ResponseEntity.ok(reviews);
     }
 
-    // permettre à un utilisateur de laisser un avis sur un produit acheté
     @PostMapping("/product/{productId}")
-    public ResponseEntity<Review> addReviewForProduct(@PathVariable Integer productId, @RequestParam String comment, @RequestParam int rating) throws NotFoundException {
+    public ResponseEntity<Review> addReviewForProduct(
+            @PathVariable Integer productId,
+            @RequestBody ReviewRequest reviewRequest) throws NotFoundException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
         User currentUser = (User) authentication.getPrincipal();
 
-        Review review = reviewService.addReview(productId, currentUser, comment, rating);
+        Review review = reviewService.addReview(productId, currentUser, reviewRequest.getComment(), reviewRequest.getRating());
         return ResponseEntity.ok(review);
     }
+
 
     //supprimer  un  avis  inapproprié
     @DeleteMapping("/delete/{reviewId}")

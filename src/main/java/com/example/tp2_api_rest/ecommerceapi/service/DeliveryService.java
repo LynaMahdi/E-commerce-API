@@ -38,7 +38,7 @@ public class DeliveryService {
     //update status
     public Delivery updateDeliveryStatus(Long deliveryId, DeliveryStatus newStatus) throws Exception {
         Optional<Delivery> deliveryOptional = deliveryRepository.findById(deliveryId);
-        if (!deliveryOptional.isPresent()) {
+        if (deliveryOptional.isEmpty()) {
             throw new Exception("Livraison not  found");
         }
         Delivery delivery = deliveryOptional.get();

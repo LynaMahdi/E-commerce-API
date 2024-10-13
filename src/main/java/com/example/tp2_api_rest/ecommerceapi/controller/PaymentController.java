@@ -1,6 +1,7 @@
 package com.example.tp2_api_rest.ecommerceapi.controller;
 
 import com.example.tp2_api_rest.ecommerceapi.entity.User;
+import com.example.tp2_api_rest.ecommerceapi.responses.PaymentCompleteRequest;
 import com.example.tp2_api_rest.ecommerceapi.responses.PaymentInfoRequest;
 import com.example.tp2_api_rest.ecommerceapi.service.PaymentService;
 import com.stripe.exception.StripeException;
@@ -28,28 +29,34 @@ public class PaymentController {
     public ResponseEntity<String> createPaymentIntent(@RequestBody PaymentInfoRequest paymentInfoRequest)
             throws StripeException {
 
+        // Créer le PaymentIntent avec le service de paiement
         PaymentIntent paymentIntent = paymentService.createPaymentIntent(paymentInfoRequest);
-        String paymentStr = paymentIntent.toJson();
 
-        return new ResponseEntity<>(paymentStr, HttpStatus.OK);
+        // Extraire uniquement l'identifiant du PaymentIntent
+        String paymentId = paymentIntent.getId();
+
+        // Retourner l'identifiant dans la réponse
+        return new ResponseEntity<>(paymentId, HttpStatus.OK);
     }
 
+
     @PostMapping("/payment-complete")
-    public ResponseEntity<String> stripePaymentComplete(@RequestParam String paymentIntentId,
-                                                        @RequestParam String paymentMethodId)
+    public ResponseEntity<String> stripePaymentComplete(@RequestBody PaymentCompleteRequest request)
             throws Exception {
-        // Retrieve the currently authenticated user
+
+        // Récupérer l'utilisateur authentifié
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User currentUser = (User) authentication.getPrincipal();
 
-        // Get the email of the current user
+        // Obtenir l'email de l'utilisateur
         String userEmail = currentUser.getEmail();
-        if (userEmail == null || userEmail.isEmpty()) { // Check for null or empty
+        if (userEmail == null || userEmail.isEmpty()) { // Vérification de null ou vide
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User email is missing");
         }
 
-        // Confirm the payment using the paymentIntentId and paymentMethodId
-        return paymentService.stripePayment(userEmail, paymentIntentId, paymentMethodId);
+        // Confirmer le paiement en utilisant paymentIntentId et paymentMethodId depuis le DTO
+        return paymentService.stripePayment(userEmail, request.getPaymentIntentId(), request.getPaymentMethodId());
     }
+
 
 }

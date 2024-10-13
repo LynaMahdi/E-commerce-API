@@ -11,6 +11,8 @@ public class OrderRequest {
     private List<OrderProduct> orderItems;
     private String email;
     private Address address;
+    private Long paymentId;
+    private String paymentIntentId;
 
     // Getters and Setters
 
@@ -36,5 +38,13 @@ public class OrderRequest {
 
     public void setAddress(Address address) {
         this.address = address;
+    }
+
+    public Long getPaymentId() {
+        return paymentId;
+    }
+
+    public String getPaymentIntentId() {
+        return paymentIntentId;
     }
 }

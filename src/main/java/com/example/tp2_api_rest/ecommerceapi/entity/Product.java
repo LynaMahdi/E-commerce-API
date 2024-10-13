@@ -28,10 +28,12 @@ public class Product {
     private Integer product_id;
     private String name;
 
+
     @ManyToOne
     @JoinColumn(name = "category_id")
-    @JsonBackReference // Éviter la sérialisation de la catégorie dans les produits
+    @JsonBackReference("category-products")
     private Category category;
+
 
     private double price;
     private String description;
@@ -40,7 +42,7 @@ public class Product {
     private String image;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
-    @JsonManagedReference
+    @JsonManagedReference("product-reviews")
     private List<Review> reviews;
 
 }

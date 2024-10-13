@@ -27,8 +27,9 @@ public class Category {
 
 
 
-    @OneToMany(mappedBy = "category", cascade =  CascadeType.ALL )
-    @JsonManagedReference // Gérer la sérialisation de la liste des produits
+    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
+    @JsonManagedReference("category-products")
     private List<Product> products;
+
 
 }

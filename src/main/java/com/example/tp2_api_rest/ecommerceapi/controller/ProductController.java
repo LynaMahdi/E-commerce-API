@@ -30,7 +30,7 @@ public class ProductController {
     }
 
     // Récupérer les détails d'un produit spécifique
-    @GetMapping("/product/{id}")
+    @GetMapping("/product/get/{id}")
     public ResponseEntity<Product> getProductById(@PathVariable Integer id) {
         try{
             Product product = productService.getProductById(id);

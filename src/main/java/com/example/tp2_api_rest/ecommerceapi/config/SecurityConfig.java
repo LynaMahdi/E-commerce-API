@@ -26,13 +26,13 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authRequest -> authRequest
                         // Autoriser l'accès non authentifié pour login et register
-                        .requestMatchers("/api/authentification/login", "/api/authentification/register", "/api/authentification/refresh-token","api/categories/all","api/product/all").permitAll()
+                        .requestMatchers("/api/authentification/login", "/api/authentification/register", "/api/authentification/refresh-token","api/categories/all","/api/categories/get/**","api/product/all","api/product/get/**").permitAll()
 
                         // Restreindre les endpoints aux utilisateurs authentifiés avec rôle ADMIN
-                        .requestMatchers("/api/authentification/allUsers","/api/authentification/delete/**", "/api/authentification/update/**","api/categories/addCategory","api/categories/update/**","api/categories/delete/**","api/product/admin/addTocategories/**","api/product/update/**","/api/reviews/delete/**").hasRole("ADMIN")
+                        .requestMatchers("/api/authentification/allUsers","/api/authentification/delete/**", "/api/authentification/update/**","/api/categories/addCategory","api/categories/update/**","api/categories/delete/**","api/product/admin/addTocategories/**","api/product/update/**","/api/reviews/delete/**","/api/product/delete/**","/api/deliveries/**","/api/orders/all","/api/orders/get/**").hasRole("ADMIN")
 
                         // Autoriser tous les utilisateurs authentifiés pour certains endpoints
-                        .requestMatchers("/api/authentification/myprofile","/api/authentification/logout", "/api/cart/**",    "/api/orders/**",  "/api/authentification/update/**","/api/payment/secure/**","/api/reviews/product/**").authenticated()
+                        .requestMatchers("/api/authentification/myprofile","/api/authentification/logout", "/api/cart/**",    "/api/orders/**",  "/api/authentification/update/**","/api/payment/secure/payment-complete","/api/payment/secure/payment-intent","/api/reviews/product/**","/api/deliveries/**").authenticated()
                 )
                 .sessionManagement(sessionManager -> sessionManager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authProvider)

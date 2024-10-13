@@ -1,6 +1,7 @@
 package com.example.tp2_api_rest.ecommerceapi.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -39,9 +40,11 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     Role role;
 
+
     @OneToMany(mappedBy = "user", cascade = { CascadeType.ALL }, orphanRemoval = true)
-    @JsonBackReference
+    @JsonManagedReference("order-user") // Utiliser ManagedReference ici
     private List<Order> orders = new ArrayList<>();
+
 
 
     //eager a chaque fois que je charge un utilisateur les adresses aussis seront chargées
@@ -54,7 +57,7 @@ public class User implements UserDetails {
 
 
     @OneToOne(mappedBy = "user", cascade = { CascadeType.PERSIST, CascadeType.MERGE }, orphanRemoval = true)
-    @JsonBackReference // Prevent circular reference
+    @JsonBackReference("cart_user")
     private Cart cart;
 
     @Override

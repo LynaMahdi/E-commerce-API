@@ -190,7 +190,7 @@ public class OrderService {
         // Mettre à jour le statut de livraison si une livraison est associée
         Delivery delivery = order.getDelivery();
         if (delivery != null) {
-            delivery.setDeliveryStatus(DeliveryStatus.CANCELELD);
+            delivery.setDeliveryStatus(DeliveryStatus.CANCELED);
             deliveryRepository.save(delivery);
         }
 
